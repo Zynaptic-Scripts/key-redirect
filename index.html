@@ -51,38 +51,55 @@
 
   <script>
     async function loadKey() {
-      const res = await fetch("https://api.github.com/users/Zynaptic-Scripts/gists");
-      const gists = await res.json();
-      for (const gist of gists) {
-        const file = gist.files["ZynapticKey.txt"];
-        if (file) {
-          const contentRes = await fetch(file.raw_url);
-          const text = await contentRes.text();
-          const key = text.match(/KEY:(.-)\n/)[1];
-          const created = parseInt(text.match(/CREATED:(%d+)/) ? RegExp.$1 : text.match(/CREATED:(\d+)/)[1]);
-          const used = text.match(/USED:(.-)%s*$/) ? RegExp.$1 : text.match(/USED:(true|false)/)[1];
+      try {
+        const res = await fetch("https://api.github.com/users/Zynaptic-Scripts/gists");
+        const gists = await res.json();
+        let found = false;
 
-          if (used === "false") {
-            const now = Math.floor(Date.now() / 1000);
-            const diff = 43200 - (now - created);
-            const hours = Math.floor(diff / 3600);
-            const minutes = Math.floor((diff % 3600) / 60);
+        for (const gist of gists) {
+          if (gist.files["ZynapticKey.txt"]) {
+            const contentRes = await fetch(gist.files["ZynapticKey.txt"].raw_url);
+            const text = await contentRes.text();
 
-            document.getElementById("key").innerText = key;
-            document.getElementById("expire").innerText = `Expires in ${hours} Hours and ${minutes} Minutes`;
-            return;
+            const keyMatch = text.match(/KEY:(.+)\n/);
+            const createdMatch = text.match(/CREATED:(\d+)\n/);
+            const usedMatch = text.match(/USED:(true|false)/);
+
+            if (keyMatch && createdMatch && usedMatch) {
+              const key = keyMatch[1].trim();
+              const created = parseInt(createdMatch[1], 10);
+              const used = usedMatch[1];
+
+              if (used === "false") {
+                const now = Math.floor(Date.now() / 1000);
+                const diff = 43200 - (now - created);
+                const hours = Math.floor(diff / 3600);
+                const minutes = Math.floor((diff % 3600) / 60);
+
+                document.getElementById("key").innerText = key;
+                document.getElementById("expire").innerText = `Expires in ${hours} Hours and ${minutes} Minutes`;
+                found = true;
+                break;
+              }
+            }
           }
         }
+
+        if (!found) {
+          document.getElementById("key").innerText = "No valid key found.";
+          document.getElementById("expire").innerText = "";
+        }
+      } catch (e) {
+        document.getElementById("key").innerText = "Error loading key.";
+        document.getElementById("expire").innerText = "";
       }
-      document.getElementById("key").innerText = "No valid key found.";
-      document.getElementById("expire").innerText = "";
     }
 
     function copyKey() {
       const text = document.getElementById("key").innerText;
-      navigator.clipboard.writeText(text).then(() => {
-        alert("Key copied to clipboard!");
-      });
+      if (text && text !== "Loading key..." && text !== "No valid key found." && text !== "Error loading key.") {
+        navigator.clipboard.writeText(text).then(() => alert("Key copied to clipboard!"));
+      }
     }
 
     loadKey();
