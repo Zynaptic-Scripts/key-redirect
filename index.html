@@ -1,108 +1,123 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Zynaptic Key</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #121212;
-      color: #f0f0f0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      flex-direction: column;
-    }
-    h1 {
-      color: #00ffff;
-    }
-    #key {
-      font-size: 20px;
-      background: #222;
-      padding: 12px 20px;
-      border-radius: 8px;
-      margin-top: 20px;
-      word-break: break-all;
-    }
-    button {
-      margin-top: 10px;
-      padding: 10px 16px;
-      background: #00ffff;
-      border: none;
-      color: #000;
-      font-weight: bold;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    #expire {
-      margin-top: 10px;
-      font-size: 14px;
-      color: #ccc;
-    }
-  </style>
-</head>
-<body>
-  <h1>Your Zynaptic Key</h1>
-  <div id="key">Loading key...</div>
-  <div id="expire">Calculating expiration...</div>
-  <button onclick="copyKey()">Copy Key</button>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="referrer" content="origin" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Zynaptic Key Portal</title>
+    <style>
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #1e1e2f, #29293d);
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        margin: 0;
+        padding: 0 20px;
+        text-align: center;
+      }
 
-  <script>
-    async function loadKey() {
-      try {
-        const res = await fetch("https://api.github.com/users/Zynaptic-Scripts/gists");
-        const gists = await res.json();
-        let found = false;
+      h1 {
+        margin-bottom: 10px;
+        font-size: 2em;
+      }
 
-        for (const gist of gists) {
-          if (gist.files["ZynapticKey.txt"]) {
-            const contentRes = await fetch(gist.files["ZynapticKey.txt"].raw_url);
-            const text = await contentRes.text();
+      p {
+        margin: 5px 0;
+        font-size: 1.1em;
+      }
 
-            const keyMatch = text.match(/KEY:(.+)\n/);
-            const createdMatch = text.match(/CREATED:(\d+)\n/);
-            const usedMatch = text.match(/USED:(true|false)/);
+      #keyDisplay {
+        background-color: #2a2a40;
+        padding: 15px 25px;
+        border-radius: 8px;
+        margin-top: 20px;
+        font-size: 1.3em;
+        word-break: break-all;
+        border: 1px solid #444;
+      }
 
-            if (keyMatch && createdMatch && usedMatch) {
-              const key = keyMatch[1].trim();
-              const created = parseInt(createdMatch[1], 10);
-              const used = usedMatch[1];
+      button {
+        margin-top: 15px;
+        padding: 10px 20px;
+        font-size: 1em;
+        background: #4e5ab7;
+        border: none;
+        color: #fff;
+        border-radius: 6px;
+        cursor: pointer;
+      }
 
-              if (used === "false") {
-                const now = Math.floor(Date.now() / 1000);
-                const diff = 43200 - (now - created);
-                const hours = Math.floor(diff / 3600);
-                const minutes = Math.floor((diff % 3600) / 60);
+      button:hover {
+        background: #6772e5;
+      }
 
-                document.getElementById("key").innerText = key;
-                document.getElementById("expire").innerText = `Expires in ${hours} Hours and ${minutes} Minutes`;
-                found = true;
-                break;
-              }
+      .loading {
+        color: #aaa;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Zynaptic Key</h1>
+    <p class="loading" id="loading">Loading key...</p>
+    <p class="loading" id="expiration">Calculating expiration...</p>
+    <div id="keyDisplay" style="display:none;"></div>
+    <button id="copyBtn" style="display:none;">Copy to Clipboard</button>
+
+    <script>
+      async function loadKey() {
+        try {
+          const res = await fetch("https://api.github.com/users/Zynaptic-Scripts/gists");
+          const gists = await res.json();
+
+          console.log("Gists fetched:", gists);
+
+          for (const gist of gists) {
+            console.log("Checking gist:", gist.id, "files:", Object.keys(gist.files));
+            const file = gist.files["ZynapticKey.txt"];
+            if (!file) continue;
+
+            const content = await (await fetch(file.raw_url)).text();
+            console.log("Gist content:", content);
+
+            const key = content.match(/KEY:(.+)/)?.[1]?.trim();
+            const created = parseInt(content.match(/CREATED:(\d+)/)?.[1]);
+            const used = content.match(/USED:(.+)/)?.[1]?.trim();
+
+            if (key && used === "false" && !isNaN(created)) {
+              const now = Math.floor(Date.now() / 1000);
+              const timeLeft = 43200 - (now - created);
+
+              const hours = Math.floor(timeLeft / 3600);
+              const minutes = Math.floor((timeLeft % 3600) / 60);
+
+              document.getElementById("loading").textContent = "Your key:";
+              document.getElementById("expiration").textContent = `Expires in ${hours} Hours and ${minutes} Minutes`;
+              document.getElementById("keyDisplay").textContent = key;
+              document.getElementById("keyDisplay").style.display = "block";
+              document.getElementById("copyBtn").style.display = "inline-block";
+
+              document.getElementById("copyBtn").onclick = function () {
+                navigator.clipboard.writeText(key);
+                alert("Key copied to clipboard!");
+              };
+              return;
             }
           }
+
+          document.getElementById("loading").textContent = "No valid key found.";
+          document.getElementById("expiration").textContent = "";
+        } catch (err) {
+          console.error("Error fetching key:", err);
+          document.getElementById("loading").textContent = "Error loading key.";
+          document.getElementById("expiration").textContent = "";
         }
-
-        if (!found) {
-          document.getElementById("key").innerText = "No valid key found.";
-          document.getElementById("expire").innerText = "";
-        }
-      } catch (e) {
-        document.getElementById("key").innerText = "Error loading key.";
-        document.getElementById("expire").innerText = "";
       }
-    }
 
-    function copyKey() {
-      const text = document.getElementById("key").innerText;
-      if (text && text !== "Loading key..." && text !== "No valid key found." && text !== "Error loading key.") {
-        navigator.clipboard.writeText(text).then(() => alert("Key copied to clipboard!"));
-      }
-    }
-
-    loadKey();
-  </script>
-</body>
+      loadKey();
+    </script>
+  </body>
 </html>
