@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Zynaptic Key Redirect</title>
+  <style>
+    body { font-family: sans-serif; background: #111; color: #0f0; text-align: center; padding-top: 60px; }
+    code { font-size: 1.5em; background: #222; padding: 10px; border-radius: 6px; display: inline-block; }
+  </style>
+</head>
+<body>
+  <h1>🎯 Your Zynaptic Key</h1>
+  <p>Copy and paste this into the game UI:</p>
+  <code id="key">Loading...</code>
+
+  <script>
+    fetch("https://api.github.com/users/Zynaptic-Scripts/gists")
+      .then(res => res.json())
+      .then(gists => {
+        const gist = gists.find(g => g.files["ZynapticKey.txt"]);
+        if (!gist) throw new Error("No key found");
+
+        return fetch(gist.files["ZynapticKey.txt"].raw_url);
+      })
+      .then(res => res.text())
+      .then(text => {
+        const match = text.match(/KEY:(.+)/);
+        if (match) document.getElementById("key").textContent = match[1];
+        else throw new Error("Key not found");
+      })
+      .catch(err => {
+        document.getElementById("key").textContent = "Error loading key";
+        console.error(err);
+      });
+  </script>
+</body>
+</html>
