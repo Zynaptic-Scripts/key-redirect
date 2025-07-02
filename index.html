@@ -18,26 +18,46 @@
         height: 100vh;
         text-align: center;
       }
+
       .container {
-        padding: 20px;
-        max-width: 500px;
+        padding: 25px;
+        max-width: 480px;
         background-color: #1a1a1d;
-        border-radius: 12px;
+        border-radius: 14px;
         box-shadow: 0 0 20px rgba(0,0,0,0.4);
       }
+
       .key {
-        font-size: 1.5em;
+        font-size: 1.6em;
         background-color: #27272a;
-        padding: 12px 20px;
+        padding: 14px 20px;
         margin-top: 10px;
-        border-radius: 6px;
+        border-radius: 8px;
         user-select: all;
         font-weight: bold;
+        word-break: break-all;
       }
+
       .note {
         color: #999;
-        margin-top: 10px;
+        margin-top: 12px;
         font-size: 0.9em;
+      }
+
+      .copy-btn {
+        margin-top: 15px;
+        padding: 10px 20px;
+        font-size: 1em;
+        background-color: #4f46e5;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+      }
+
+      .copy-btn:hover {
+        background-color: #3730a3;
       }
     </style>
   </head>
@@ -45,10 +65,22 @@
     <div class="container">
       <h1>Your Zynaptic Key</h1>
       <div id="key" class="key">Loading...</div>
-      <div class="note">Copy this key and paste it into Roblox</div>
+      <button class="copy-btn" onclick="copyKey()">Copy Key</button>
+      <div class="note">Paste this key in your Roblox key system</div>
     </div>
 
     <script>
+      let currentKey = "";
+
+      function copyKey() {
+        if (!currentKey) return;
+        navigator.clipboard.writeText(currentKey).then(() => {
+          const btn = document.querySelector(".copy-btn");
+          btn.textContent = "Copied!";
+          setTimeout(() => (btn.textContent = "Copy Key"), 2000);
+        });
+      }
+
       fetch("https://api.github.com/users/Zynaptic-Scripts/gists")
         .then(response => response.json())
         .then(data => {
@@ -60,7 +92,8 @@
                 .then(text => {
                   const match = text.match(/KEY:(.+)\nCREATED:(\d+)\nUSED:(false)/);
                   if (match) {
-                    document.getElementById("key").textContent = match[1].trim();
+                    currentKey = match[1].trim();
+                    document.getElementById("key").textContent = currentKey;
                   }
                 });
               break;
