@@ -4,72 +4,116 @@
     <meta charset="UTF-8" />
     <meta name="referrer" content="origin" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Zynaptic Key Generator</title>
+    <title>Zynaptic Whitelist</title>
+    <link rel="icon" href="https://auth.platorelay.com/icon.svg" />
     <style>
       body {
         margin: 0;
-        background: #0e0e10;
         font-family: 'Segoe UI', sans-serif;
-        color: #ffffff;
+        background: #0f172a;
+        color: #f1f5f9;
         display: flex;
-        flex-direction: column;
         align-items: center;
         justify-content: center;
         height: 100vh;
-        text-align: center;
       }
-      .container {
-        padding: 20px;
-        max-width: 500px;
-        background-color: #1a1a1d;
+
+      .card {
+        background: #1e293b;
         border-radius: 12px;
-        box-shadow: 0 0 20px rgba(0,0,0,0.4);
+        padding: 24px;
+        max-width: 400px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
       }
-      .key {
-        font-size: 1.5em;
-        background-color: #27272a;
-        padding: 12px 20px;
-        margin-top: 10px;
+
+      .card h2 {
+        margin: 0;
+        font-size: 24px;
+        text-align: center;
+        color: #34d399;
+      }
+
+      .card p {
+        text-align: center;
+        margin-top: 8px;
+        color: #94a3b8;
+      }
+
+      .textarea {
+        margin-top: 16px;
+        width: 100%;
+        height: 80px;
         border-radius: 6px;
-        user-select: all;
-        font-weight: bold;
+        border: 1px solid #334155;
+        background: #0f172a;
+        color: #f1f5f9;
+        padding: 10px;
+        resize: none;
+        font-size: 14px;
       }
-      .note {
-        color: #999;
+
+      .copy-button {
+        width: 100%;
         margin-top: 10px;
-        font-size: 0.9em;
+        background: #3b82f6;
+        border: none;
+        color: white;
+        padding: 10px;
+        font-size: 14px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background 0.2s ease;
+      }
+
+      .copy-button:hover {
+        background: #2563eb;
+      }
+
+      .links {
+        text-align: center;
+        margin-top: 14px;
+        font-size: 12px;
+        color: #64748b;
+      }
+
+      .links a {
+        color: #64748b;
+        text-decoration: underline;
+        margin: 0 6px;
       }
     </style>
   </head>
   <body>
-    <div class="container">
-      <h1>Your Zynaptic Key</h1>
-      <div id="key" class="key">Loading...</div>
-      <div class="note">Copy this key and paste it into Roblox</div>
+    <div class="card">
+      <h2>✅ Successfully Whitelisted!</h2>
+      <p>You now have 12 hours of access.</p>
+
+      <textarea id="keyBox" class="textarea" readonly>PASTE_KEY_HERE</textarea>
+      <button class="copy-button" onclick="copyKey()">📋 Copy</button>
+
+      <div class="links">
+        <a href="https://platoboost.com/legal/report">Report</a>
+        <a href="https://platoboost.com/legal/tos">Terms</a>
+        <a href="https://platoboost.com/legal/privacy-policy">Privacy</a>
+      </div>
     </div>
 
     <script>
-      fetch("https://api.github.com/users/Zynaptic-Scripts/gists")
-        .then(response => response.json())
-        .then(data => {
-          for (let gist of data) {
-            const file = gist.files["ZynapticKey.txt"];
-            if (file) {
-              fetch(file.raw_url)
-                .then(res => res.text())
-                .then(text => {
-                  const match = text.match(/KEY:(.+)\nCREATED:(\d+)\nUSED:(false)/);
-                  if (match) {
-                    document.getElementById("key").textContent = match[1].trim();
-                  }
-                });
-              break;
-            }
-          }
-        })
-        .catch(() => {
-          document.getElementById("key").textContent = "Failed to load key.";
+      function copyKey() {
+        const box = document.getElementById("keyBox");
+        box.select();
+        box.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(box.value).then(() => {
+          alert("Key copied to clipboard!");
         });
+      }
+
+      // Optional: Inject dynamic key (replace via URL or JS)
+      const urlParams = new URLSearchParams(window.location.search);
+      const key = urlParams.get("key");
+      if (key) {
+        document.getElementById("keyBox").value = key;
+      }
     </script>
   </body>
 </html>
