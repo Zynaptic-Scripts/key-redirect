@@ -1,24 +1,22 @@
-<!-- docs/index.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <meta charset="UTF-8">
   <title>Redirecting...</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script>
-    (function() {
-      const query = new URLSearchParams(window.location.search);
-      const gistId = query.get("id") || query.get("target");
-
-      if (gistId) {
-        const redirectTo = `https://zynaptic-scripts.github.io/key-redirect/view.html?id=${gistId}`;
-        window.location.href = redirectTo;
+    window.onload = function () {
+      const path = window.location.pathname;
+      const match = path.match(/\/view\/([a-f0-9]+)\.html$/i);
+      if (match && match[1]) {
+        const id = match[1];
+        window.location.href = "/key-redirect/view.html?id=" + id;
       } else {
-        document.write("❌ No Gist ID provided. Please try again.");
+        document.getElementById("error").innerText = "❌ No Gist ID provided. Please try again.";
       }
-    })();
+    };
   </script>
 </head>
 <body>
+  <h2 id="error">Redirecting...</h2>
 </body>
 </html>
