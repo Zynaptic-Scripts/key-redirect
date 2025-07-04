@@ -1,0 +1,101 @@
+<!-- docs/view.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Zynaptic Key Viewer</title>
+  <style>
+    body {
+      background: #0e0e0e;
+      color: #f0f0f0;
+      font-family: monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+      color: #77eaff;
+    }
+
+    .box {
+      background: #1a1a1a;
+      padding: 20px;
+      border-radius: 10px;
+      border: 1px solid #333;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    #key {
+      font-size: 1.5em;
+      margin: 10px 0;
+      color: #4fff4f;
+    }
+
+    #expires {
+      font-size: 0.9em;
+      color: #999;
+    }
+
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>Zynaptic Key</h1>
+    <div id="key">Loading key...</div>
+    <div id="expires"></div>
+  </div>
+
+  <script>
+    function getQueryParam(name) {
+      const params = new URLSearchParams(window.location.search);
+      return params.get(name);
+    }
+
+    const keyBox = document.getElementById("key");
+    const expires = document.getElementById("expires");
+    const gistId = getQueryParam("id") || getQueryParam("target");
+
+    if (!gistId) {
+      keyBox.innerText = "No Gist ID provided.";
+      expires.innerText = "";
+    } else {
+      fetch(`https://api.github.com/gists/${gistId}`)
+        .then(response => response.json())
+        .then(data => {
+          const file = Object.values(data.files)[0];
+          const content = file.content;
+          const key = content.match(/KEY:(.+)/)?.[1]?.trim();
+          const created = content.match(/CREATED:(\d+)/)?.[1];
+          const used = content.match(/USED:(.+)/)?.[1]?.trim();
+
+          if (!key) {
+            keyBox.innerText = "❌ Failed to load key.";
+            return;
+          }
+
+          keyBox.innerText = key;
+          if (used === "true") {
+            expires.innerText = "⚠️ This key has already been used.";
+          } else if (created) {
+            const createdDate = new Date(Number(created) * 1000);
+            const expireDate = new Date(createdDate.getTime() + 12 * 60 * 60 * 1000);
+            expires.innerText = `⏳ Expires: ${expireDate.toLocaleString()}`;
+          }
+        })
+        .catch(() => {
+          keyBox.innerText = "❌ Error loading key.";
+        });
+    }
+  </script>
+</body>
+</html>
