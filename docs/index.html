@@ -1,114 +1,24 @@
+<!-- docs/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="referrer" content="origin" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Zynaptic Key Viewer</title>
-  <style>
-    body {
-      background-color: #0d1117;
-      color: #c9d1d9;
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 50px;
-    }
-    .container {
-      background: #161b22;
-      border: 1px solid #30363d;
-      padding: 30px;
-      border-radius: 12px;
-      max-width: 500px;
-      margin: auto;
-    }
-    h1 {
-      color: #58a6ff;
-    }
-    #keyBox {
-      font-size: 22px;
-      font-weight: bold;
-      background: #0d1117;
-      padding: 10px;
-      border: 1px solid #30363d;
-      border-radius: 5px;
-      margin: 10px auto;
-      width: 100%;
-      max-width: 400px;
-      word-break: break-all;
-    }
-    #copyBtn {
-      background-color: #238636;
-      border: none;
-      padding: 10px 20px;
-      color: white;
-      font-size: 16px;
-      cursor: pointer;
-      border-radius: 6px;
-      margin-top: 10px;
-    }
-    #copyBtn:hover {
-      background-color: #2ea043;
-    }
-  </style>
+  <meta charset="UTF-8">
+  <title>Redirecting...</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+    (function() {
+      const query = new URLSearchParams(window.location.search);
+      const gistId = query.get("id") || query.get("target");
+
+      if (gistId) {
+        const redirectTo = `https://zynaptic-scripts.github.io/key-redirect/view.html?id=${gistId}`;
+        window.location.href = redirectTo;
+      } else {
+        document.write("❌ No Gist ID provided. Please try again.");
+      }
+    })();
+  </script>
 </head>
 <body>
-  <div class="container">
-    <h1>Zynaptic Key</h1>
-    <div id="keyBox">Loading key...</div>
-    <div id="expires">Calculating expiration...</div>
-    <button id="copyBtn">Copy to Clipboard</button>
-  </div>
-
-  <script>
-    const keyBox = document.getElementById('keyBox');
-    const expires = document.getElementById('expires');
-    const copyBtn = document.getElementById('copyBtn');
-
-    function getQueryParam(param) {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get(param);
-    }
-
-    const gistId = getQueryParam("id") || getQueryParam("target");
-    if (!gistId) {
-      keyBox.innerText = "No Gist ID provided.";
-      expires.innerText = "";
-    } else {
-      fetch(`https://api.github.com/gists/${gistId}`)
-        .then(response => response.json())
-        .then(data => {
-          const fileEntry = Object.entries(data.files).find(([name]) => name.startsWith("ZynapticKey_"));
-          if (!fileEntry) throw new Error("Zynaptic key file not found.");
-          const content = fileEntry[1].content;
-          const key = content.match(/KEY:(.+)/)?.[1]?.trim();
-          const created = parseInt(content.match(/CREATED:(\d+)/)?.[1]);
-
-          if (!key || !created) throw new Error("Invalid key format.");
-
-          keyBox.innerText = key;
-
-          const remaining = 43200 - (Math.floor(Date.now() / 1000) - created);
-          if (remaining > 0) {
-            const hours = Math.floor(remaining / 3600);
-            const minutes = Math.floor((remaining % 3600) / 60);
-            expires.innerText = `Expires in ${hours} hour(s) and ${minutes} minute(s)`;
-          } else {
-            expires.innerText = `Key has expired.`;
-          }
-        })
-        .catch(err => {
-          keyBox.innerText = "Failed to load key.";
-          expires.innerText = "";
-          console.error(err);
-        });
-    }
-
-    copyBtn.onclick = () => {
-      navigator.clipboard.writeText(keyBox.innerText).then(() => {
-        copyBtn.innerText = "Copied!";
-        setTimeout(() => (copyBtn.innerText = "Copy to Clipboard"), 2000);
-      });
-    };
-  </script>
 </body>
 </html>
