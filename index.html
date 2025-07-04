@@ -69,7 +69,7 @@
       return urlParams.get(param);
     }
 
-    const gistId = getQueryParam("id");
+    const gistId = getQueryParam("id") || getQueryParam("target");
     if (!gistId) {
       keyBox.innerText = "No Gist ID provided.";
       expires.innerText = "";
