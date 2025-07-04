@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Key Viewer</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; margin-top: 50px; }
+    .key-box { font-size: 22px; color: green; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h1>🔑 Your Key:</h1>
+  <div id="keyBox" class="key-box">Loading key...</div>
+  <script>
+    const pathParts = window.location.pathname.split("/");
+    const filename = pathParts[pathParts.length - 1];
+    const gistId = filename.replace(".html", "");
+
+    fetch(`https://api.github.com/gists/${gistId}`)
+      .then(res => res.json())
+      .then(data => {
+        const file = Object.values(data.files)[0];
+        const match = file.content.match(/KEY:(.+)/);
+        document.getElementById("keyBox").innerText = match ? match[1] : "❌ Failed to extract key.";
+      })
+      .catch(err => {
+        document.getElementById("keyBox").innerText = "❌ Failed to load key.";
+        console.error(err);
+      });
+  </script>
+</body>
+</html>
